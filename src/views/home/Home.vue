@@ -3,19 +3,27 @@
     <nav-bar class="home-nav">
       <div slot="center">购物街</div>
     </nav-bar>
+    <!--吸顶效果  滑动到tab-control2时 此组件显示-->
+    <tab-control :titles="['流行','新款','精选']"
+                 @tabClick="tabClick"
+                 ref="tabControl1"
+                 class="tab-control"
+                 v-show="isTabFixed"/>
+
     <scroll class="content"
             ref="scroll"
             :probe-type="3"
             @scroll="contentScroll"
             :pull-up-load="true"
             @pullingUp="loadMore">
-      <home-swiper :banners="banners"></home-swiper>
-      <recommend-view :recommends="recommends"></recommend-view>
-      <feature-view></feature-view>
-      <tab-control class="tab-control"
-                   :titles="['流行','新款','精选']"
-                   @tabClick="tabClick"></tab-control>
-      <goods-list :goods="showGoods"></goods-list>
+      <home-swiper :banners="banners"
+                   @swiperImageLoad="swiperImageLoad"/>
+      <recommend-view :recommends="recommends"/>
+      <feature-view/>
+      <tab-control :titles="['流行','新款','精选']"
+                   @tabClick="tabClick"
+                   ref="tabControl2"/>
+      <goods-list :goods="showGoods"/>
     </scroll>
     <!--在需要监听组件的原生事件时，必须给对应的事件加.native修饰符才能监听
     @click.native-->
@@ -33,8 +41,9 @@
   import GoodsList from 'components/content/goods/GoodsList'
   import Scroll from 'components/common/scroll/Scroll'
   import BackTop from 'components/content/backTop/BackTop'
-  import {getHomeMultidata, getHomeGoods} from "network/home"
 
+  import {getHomeMultidata, getHomeGoods} from "network/home"
+  import {debounce} from "common/utils";
 
 
   export default {
@@ -52,21 +61,36 @@
     },
     data() {
       return {
-        banners: [],
+        banners: [],    //轮播图数据
         recommends: [],
         goods: {
           'pop': {page: 0, list: []},
           'new': {page: 0, list: []},
           'sell': {page: 0, list: []},
         },
-        currentType: 'pop',
-        isShowBackTop:false
+        currentType: 'pop',   //当前tab页的类型
+        isShowBackTop: false,  //是否显示返回顶部按钮
+        tabOffsetTop: 0,        //tabControll距离顶部位置
+        isTabFixed: false ,     //tab是否吸顶
+        saveY:0 //保存离开Home时的滚动位置
       }
     },
     computed: {
       showGoods() {
         return this.goods[this.currentType].list;
       }
+    },
+    destroyed(){
+      console.log('home destroyed');
+    },
+    activated(){  //组件处于活跃时的回调
+      //console.log('activated')
+      this.$refs.scroll.scrollTo(0,this.saveY,0);
+      this.$refs.scroll.refresh()
+    },
+    deactivated(){  //组件处于不活跃时的回调
+      this.saveY=this.$refs.scroll.getScrollY()
+      //console.log('deactivated:' +this.saveY)
     },
     created() {
       //请求首页数据
@@ -76,6 +100,22 @@
       this.getHomeGoods('pop');
       this.getHomeGoods('new');
       this.getHomeGoods('sell');
+
+    },
+    mounted() {
+      //图片加载完成事件监听
+      //防抖优化
+      const refresh = debounce(this.$refs.scroll.refresh, 200);
+      //监听 事件总线中的图片加载完成事件
+      this.$bus.$on('itemImageLoad', () => {
+        /**
+         * 由于图片的异步加载，有时候在图片未加载完成时BScroll计算完成了内容区域高度，
+         * 造成图片加载完成后内容撑高，导致滚动区域的计算错误，
+         * 所以在图片加载完成后手动调用BScroll的刷新，重新计算高度
+         */
+        //this.$refs.scroll.refresh()
+        refresh();
+      })
 
     },
     methods: {
@@ -97,6 +137,7 @@
           this.$refs.scroll.finishPullUp();
         })
       },
+
       /**
        * 事件监听
        */
@@ -112,22 +153,26 @@
             this.currentType = 'sell';
             break
         }
+        this.$refs.tabControl1.currentIndex=index;
+        this.$refs.tabControl2.currentIndex=index;
       },
-      backClick(){
-        this.$refs.scroll.scrollTo(0,0,500)
+      backClick() {
+        this.$refs.scroll.scrollTo(0, 0, 500)
       },
-      contentScroll(position){
-          this.isShowBackTop= -(position.y) > 1000
-      },
-      loadMore(){
-        this.getHomeGoods(this.currentType);
+      contentScroll(position) {
+        //判断BackTop是否显示
+        this.isShowBackTop = -(position.y) > 1000
 
-        /**
-         * 由于图片的异步加载，有时候在图片未加载完成时BScroll计算完成了内容区域高度，
-         * 造成图片加载完成后内容撑高，导致滚动区域的计算错误，
-         * 所以在数据加载完成后手动调用BScroll的刷新，重新计算高度
-         */
-        this.$refs.scroll.scroll.refresh()
+        //tabControl是否吸顶(position : fixed)
+        this.isTabFixed = (-position.y) > this.tabOffsetTop
+      },
+      loadMore() {
+        this.getHomeGoods(this.currentType);
+      },
+      swiperImageLoad() {
+        //获取tabControl的offsetTop
+        //所有组件都有$el属性：用于获取组件里的元素
+        this.tabOffsetTop = this.$refs.tabControl2.$el.offsetTop
       }
 
     }
@@ -145,21 +190,15 @@
   .home-nav {
     background-color: var(--color-tint);
     color: white;
-
-    position: fixed;
-    left: 0;
-    right: 0;
-    top: 0;
-    z-index: 9;
+     /*在使用浏览器原生滚动时为了使顶部导航不跟随一起滚动*/
+    /*position: fixed;*/
+    /*left: 0;*/
+    /*right: 0;*/
+    /*top: 0;*/
+    /*z-index: 9;*/
   }
 
-  .tab-control {
-    position: sticky;
-    top: 44px;
-    z-index: 9;
-  }
-
-  .content{
+  .content {
     overflow: hidden;
     position: absolute;
     top: 44px;
@@ -168,10 +207,15 @@
     right: 0;
   }
 
+  .tab-control{
+    position: relative;
+    z-index: 9;
+  }
+
   /*.content{*/
-    /*height: calc(100% - 93px);*/
-    /*overflow: hidden;*/
-    /*margin-top: 44px;*/
+  /*height: calc(100% - 93px);*/
+  /*overflow: hidden;*/
+  /*margin-top: 44px;*/
   /*}*/
 
 

@@ -1,6 +1,7 @@
 <template>
-  <div class="goods-item">
-    <img :src="goodsItem.show.img">
+  <div class="goods-item" @click="itemClick">
+    <!--vue 中监听加载完成的方法 @load-->
+    <img :src="goodsItem.show.img" @load="imageLoad">
     <div class="goods-info">
       <p>{{goodsItem.title}}</p>
       <span class="price">{{goodsItem.price}}</span>
@@ -18,6 +19,25 @@
         default() {
           return {}
         }
+      }
+    },
+    methods:{
+      imageLoad(){
+        // console.log("图片加载完成")
+        //事件总线发送事件
+        this.$bus.$emit('itemImageLoad')
+      },
+      itemClick(){
+        //动态路由
+        this.$router.push('/detail/'+this.goodsItem.iid)
+
+        //query传参
+       /* this.$router.push({
+          path:'/detail',
+          query:{
+            id:this.goodsItem.id
+          }
+        })*/
       }
     }
   }
