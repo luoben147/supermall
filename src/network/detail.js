@@ -15,6 +15,15 @@ export function getDetail(iid) {
 }
 
 /**
+ * 推荐数据
+ */
+export function getRecommend() {
+  return request({
+    url:'/recommend'
+  })
+}
+
+/**
  * 封装商品详情的基础信息
  */
 export class Goods{
@@ -24,6 +33,7 @@ export class Goods{
     this.newPrice=itemInfo.price;
     this.oldPrice=itemInfo.oldPrice;
     this.discount=itemInfo.discountDesc;
+    this.discountBgColor=itemInfo.discountBgColor;
     this.columns=columns;
     this.services=services;
     this.realPrice=itemInfo.lowNowPrice;
@@ -43,3 +53,15 @@ export class Shop {
     this.goodsCount = shopInfo.cGoods
   }
 }
+
+//封装商品参数
+export class GoodsParam {
+  constructor(info, rule) {
+    // 注: images可能没有值(某些商品有值, 某些没有值)
+    this.image = info.images ? info.images[0] : '';
+    this.infos = info.set;
+    this.sizes = rule.tables;
+  }
+}
+
+

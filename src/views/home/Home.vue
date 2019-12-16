@@ -44,7 +44,7 @@
 
   import {getHomeMultidata, getHomeGoods} from "network/home"
   import {debounce} from "common/utils";
-
+  import {itemListenerMixin} from "common/mixin";
 
   export default {
     name: "Home",
@@ -59,6 +59,7 @@
       BackTop
 
     },
+    mixins:[itemListenerMixin], //混入 （生命周期/对象..等的 复用）
     data() {
       return {
         banners: [],    //轮播图数据
@@ -84,13 +85,17 @@
       console.log('home destroyed');
     },
     activated(){  //组件处于活跃时的回调
-      //console.log('activated')
-      this.$refs.scroll.scrollTo(0,this.saveY,0);
+      console.log('activated Y = '+this.saveY)
+      this.$refs.scroll.scrollTo(0,this.saveY);
       this.$refs.scroll.refresh()
     },
     deactivated(){  //组件处于不活跃时的回调
+      console.log("Home Y = "+this.$refs.scroll.getScrollY())
+      //保存y值
       this.saveY=this.$refs.scroll.getScrollY()
       //console.log('deactivated:' +this.saveY)
+      //取消全局事件的监听
+      this.$bus.$off('itemImageLoad',this.itemImgListener)
     },
     created() {
       //请求首页数据
@@ -100,22 +105,6 @@
       this.getHomeGoods('pop');
       this.getHomeGoods('new');
       this.getHomeGoods('sell');
-
-    },
-    mounted() {
-      //图片加载完成事件监听
-      //防抖优化
-      const refresh = debounce(this.$refs.scroll.refresh, 200);
-      //监听 事件总线中的图片加载完成事件
-      this.$bus.$on('itemImageLoad', () => {
-        /**
-         * 由于图片的异步加载，有时候在图片未加载完成时BScroll计算完成了内容区域高度，
-         * 造成图片加载完成后内容撑高，导致滚动区域的计算错误，
-         * 所以在图片加载完成后手动调用BScroll的刷新，重新计算高度
-         */
-        //this.$refs.scroll.refresh()
-        refresh();
-      })
 
     },
     methods: {

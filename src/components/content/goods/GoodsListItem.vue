@@ -1,7 +1,7 @@
 <template>
   <div class="goods-item" @click="itemClick">
     <!--vue 中监听加载完成的方法 @load-->
-    <img :src="goodsItem.show.img" @load="imageLoad">
+    <img :src="showImage" @load="imageLoad">
     <div class="goods-info">
       <p>{{goodsItem.title}}</p>
       <span class="price">{{goodsItem.price}}</span>
@@ -19,6 +19,11 @@
         default() {
           return {}
         }
+      }
+    },
+    computed:{
+      showImage(){
+        return this.goodsItem.image || this.goodsItem.show.img
       }
     },
     methods:{
