@@ -5,7 +5,7 @@
  */
 
 import {debounce} from "./utils";
-
+import BackTop from 'components/content/backTop/BackTop';
 /**
  * 在Home 与Detail 组件都要监听图片加载完成
  * 这里使用混入 复用mounted
@@ -34,5 +34,25 @@ export const itemListenerMixin={
       refresh();
     }
     this.$bus.$on('itemImageLoad', this.itemImgListener)
+  }
+}
+
+
+export const backTopMixin={
+  components:{
+    BackTop
+  },
+  data(){
+    return{
+      isShowBackTop: false  //是否显示返回顶部按钮
+    }
+  },
+  methods: {
+    backClick() {
+      this.$refs.scroll.scrollTo(0, 0, 300)
+    },
+    listensShowBackTop(position){ //判断BackTop是否显示
+      this.isShowBackTop = -position.y > 1000
+    }
   }
 }
