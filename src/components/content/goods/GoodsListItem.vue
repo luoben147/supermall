@@ -1,7 +1,7 @@
 <template>
   <div class="goods-item" @click="itemClick">
     <!--vue 中监听加载完成的方法 @load-->
-    <img :src="showImage" @load="imageLoad">
+    <img v-lazy="showImage" @load="imageLoad">
     <div class="goods-info">
       <p>{{goodsItem.title}}</p>
       <span class="price">{{goodsItem.price}}</span>
