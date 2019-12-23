@@ -75,7 +75,7 @@
     created() {
       this.iid = this.$route.params.id
       getDetail(this.iid).then(res => {
-        //console.log(res);
+        console.log(res);
         const data = res.result;
         //解析轮播数据
         this.topImages = data.itemInfo.topImages;
@@ -92,7 +92,7 @@
           this.commentInfo = data.rate.list[0];
         }
         getRecommend().then(res => {
-          console.log(res);
+          //console.log(res);
           this.recommends = res.data.list
         })
 
@@ -130,7 +130,7 @@
         this.themeTopYs.push(this.$refs.comment.$el.offsetTop - 44);//评论组件offsetTop
         this.themeTopYs.push(this.$refs.recommend.$el.offsetTop - 44);//推荐组件offsetTop
         this.themeTopYs.push(Number.MAX_VALUE);//最大值区间
-        console.log(this.themeTopYs)
+        //console.log(this.themeTopYs)
       },
       titleClick(index) {
         //减去顶部导航栏高度

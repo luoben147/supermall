@@ -86,7 +86,7 @@
       this.$refs.scroll.refresh()
     },
     deactivated(){  //组件处于不活跃时的回调
-      console.log("Home Y = "+this.$refs.scroll.getScrollY())
+      //console.log("Home Y = "+this.$refs.scroll.getScrollY())
       //保存y值
       this.saveY=this.$refs.scroll.getScrollY()
       //console.log('deactivated:' +this.saveY)

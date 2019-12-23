@@ -4,7 +4,7 @@ import Toast from './Toast'
 const obj={}
 
 obj.install=function (Vue) {
-  console.log('执行了obj的install函数',Vue);
+  //console.log('执行了obj的install函数',Vue);
 
   //1.创建组建构造器
   const toastContrustor=Vue.extend(Toast)
